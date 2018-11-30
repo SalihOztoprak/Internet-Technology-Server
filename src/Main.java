@@ -1,10 +1,11 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Connection;
+import java.util.Base64;
 import java.util.Scanner;
 
 public class Main {
+    private final static int PORT = 1337;
 
     public static void main(String[] args) {
         new Main().run();
@@ -14,32 +15,27 @@ public class Main {
         connectToServer();
     }
 
-    public static void connectToServer() {
-        //Try connect to the server on an unused port eg 9991. A successful connection will return a socket
-        try(ServerSocket serverSocket = new ServerSocket(1337)) {
-            Socket connectionSocket = serverSocket.accept();
+    private static void connectToServer() {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            while (true) {
+                Socket socket = serverSocket.accept();
 
-            //Create Input&Outputstreams for the connection
-            InputStream inputToServer = connectionSocket.getInputStream();
-            OutputStream outputFromServer = connectionSocket.getOutputStream();
+                InputStream is = socket.getInputStream();
+                OutputStream os = socket.getOutputStream();
 
-            Scanner scanner = new Scanner(inputToServer, "UTF-8");
-            PrintWriter serverPrintOut = new PrintWriter(new OutputStreamWriter(outputFromServer, "UTF-8"), true);
+                // Block thread until socket input has been read.
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(os, "UTF-8"), true);
 
-            serverPrintOut.println("HELO Hello World! Enter Peace to exit.");
+                writer.println("HELO");
+                writer.flush();
 
-            //Have the server take input from the client and echo it back
-            //This should be placed in a loop that listens for a terminator text e.g. bye
-            boolean done = false;
-
-            while(!done && scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                serverPrintOut.println("HELO Echo from <Your Name Here> Server: " + line);
-
-                if(line.toLowerCase().trim().equals("peace")) {
-                    done = true;
-                }
+                String line = reader.readLine();
+                final String encodedMessage = Base64.getEncoder().encodeToString(MD5.getMd5(line));
+                writer.println("+OK " + encodedMessage);
+                ClientHandler clientHandler = new ClientHandler(is,os,socket);
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
