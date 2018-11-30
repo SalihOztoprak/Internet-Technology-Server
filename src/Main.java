@@ -20,7 +20,7 @@ public class Main {
         //Try connect to the server on an unused port eg 9991. A successful connection will return a socket
         try (ServerSocket serverSocket = new ServerSocket(1337)) {
             Socket connectionSocket = serverSocket.accept();
-            
+
             //Create Input&Outputstreams for the connection
             InputStream inputToServer = connectionSocket.getInputStream();
             OutputStream outputFromServer = connectionSocket.getOutputStream();
