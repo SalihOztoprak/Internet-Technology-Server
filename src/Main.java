@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 
+
 public class Main {
     private final static int PORT = 1337;
     private static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
