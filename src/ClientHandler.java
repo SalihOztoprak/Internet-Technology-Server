@@ -17,13 +17,20 @@ public class ClientHandler extends Thread {
 
     @Override
     public void run() {
+        super.run();
+        DisconnectIdle disconnectIdle = new DisconnectIdle(socket);
+        disconnectIdle.start();
         while (true) {
             try {
                 String message = Main.readMessage(socket.getInputStream());
                 Main.sendMessage(socket.getOutputStream(), "+OK " + Main.encodeMessage(message));
+                Main.broadcastMessage(this, message);
             } catch (IOException e) {
                 e.printStackTrace();
+                break;
             }
+
+
         }
     }
 
@@ -37,5 +44,9 @@ public class ClientHandler extends Thread {
 
     public Socket getSocket() {
         return socket;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }

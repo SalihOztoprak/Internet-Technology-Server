@@ -43,8 +43,21 @@ public class Main {
         }
     }
 
-    public void broadcastMessage(ClientHandler handler, String message) {
+    public static void broadcastMessage(ClientHandler handler, String message) throws IOException {
+        for (ClientHandler clientHandler : clientHandlers) {
+            if (!clientHandler.equals(handler)) {
+                String msg;
+                if (handler != null) {
+                    msg = message.replace("BCST ", "");
+                    msg = handler.getUsername() + ": " + msg;
+                    msg = "BCST " + msg;
+                } else {
+                    msg = message;
+                }
 
+                sendMessage(clientHandler.getSocket().getOutputStream(), msg);
+            }
+        }
     }
 
     public static void sendMessage(OutputStream outputStream, String message) {
