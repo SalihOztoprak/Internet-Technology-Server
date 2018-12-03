@@ -1,25 +1,30 @@
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 
 public class ClientHandler extends Thread {
     private DateFormat date = new SimpleDateFormat("yyyy/MM/dd");
     private DateFormat time = new SimpleDateFormat("hh:mm:ss");
-    private final InputStream inputStream;
-    private final OutputStream outputStream;
+    private final String username;
     private final Socket socket;
 
-    public ClientHandler(InputStream dis, OutputStream dos, Socket s) {
-        this.inputStream = dis;
-        this.outputStream = dos;
-        this.socket = s;
+    public ClientHandler(String username, Socket socket) {
+        this.username = username;
+        this.socket = socket;
     }
 
     @Override
-    public void run(){
-
+    public void run() {
+        while (true) {
+            try {
+                String message = Main.readMessage(socket.getInputStream());
+                Main.sendMessage(socket.getOutputStream(), "+OK " + Main.encodeMessage(message));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public DateFormat getDate() {
@@ -28,14 +33,6 @@ public class ClientHandler extends Thread {
 
     public DateFormat getTime() {
         return time;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public OutputStream getOutputStream() {
-        return outputStream;
     }
 
     public Socket getSocket() {

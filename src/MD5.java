@@ -13,6 +13,7 @@ public class MD5 {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] messageDigest = md.digest(input.getBytes());
 
+
             return messageDigest;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
