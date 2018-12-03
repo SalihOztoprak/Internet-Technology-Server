@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Base64;
-import java.util.Scanner;
+
 
 public class Main {
     private final static int PORT = 1337;
