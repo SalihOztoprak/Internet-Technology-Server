@@ -21,11 +21,12 @@ public class DisconnectIdle extends Thread {
                     Thread.sleep(1000);
                     String rsp = Main.readMessage(socket.getInputStream());
                     assert rsp != null;
-                    if (rsp.equals("PONG")) {
+                    if (rsp.equals("PONG ")) {
                         i = 10;
                     }
                     if (i == 9){
-                        socket.close();
+                        this.socket.close();
+                        this.interrupt();
                     }
                 }
             } catch (Exception e) {

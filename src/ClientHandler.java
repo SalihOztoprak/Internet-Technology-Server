@@ -29,8 +29,6 @@ public class ClientHandler extends Thread {
                 e.printStackTrace();
                 break;
             }
-
-
         }
     }
 
