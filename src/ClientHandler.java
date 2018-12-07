@@ -23,8 +23,10 @@ public class ClientHandler extends Thread {
         while (true) {
             try {
                 String message = Main.readMessage(socket.getInputStream());
-                Main.sendMessage(socket.getOutputStream(), "+OK " + Main.encodeMessage(message));
-                Main.broadcastMessage(this, message);
+                if (!message.equals("PONG")) {
+                    Main.sendMessage(socket.getOutputStream(), "+OK " + Main.encodeMessage(message));
+                    Main.broadcastMessage(this, message);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 break;

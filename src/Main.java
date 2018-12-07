@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 
+
 public class Main {
     private final static int PORT = 1337;
     private static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
@@ -73,14 +74,19 @@ public class Main {
     public static String readMessage(InputStream inputStream) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            return reader.readLine();
+            String readLine = reader.readLine();
+            if (readLine.equals("PONG ")) {
+                String[] trimmedString = readLine.split(" ");
+                readLine = trimmedString[0];
+            }
+            return readLine;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public static String encodeMessage(String message){
+    public static String encodeMessage(String message) {
         return Base64.getEncoder().encodeToString(MD5.getMd5(message));
     }
 }
