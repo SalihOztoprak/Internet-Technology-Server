@@ -1,6 +1,4 @@
-import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.SocketHandler;
 
 public class DisconnectIdle extends Thread {
     private Socket socket;
@@ -14,7 +12,7 @@ public class DisconnectIdle extends Thread {
         super.run();
         while (true) {
             try {
-                Thread.sleep(60000);
+                Thread.sleep(6000);
                 Main.sendMessage(socket.getOutputStream(), "PING");
 
                 for (int i = 0; i < 10; i++) {
