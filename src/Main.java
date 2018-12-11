@@ -25,9 +25,10 @@ public class Main {
                 InputStream is = socket.getInputStream();
                 OutputStream os = socket.getOutputStream();
 
-                sendMessage(os, "HELO");
-                String message = readMessage(is);
-                sendMessage(os, "+OK " + encodeMessage(message));
+                sendMessage(socket, "HELO");
+                String message = readMessage(socket);
+                sendMessage(socket, "+OK " + encodeMessage(message));
+                sendMessage(socket, "BCST To view all commands, type /help");
 
                 String username = null;
                 if (message != null) {
@@ -56,28 +57,30 @@ public class Main {
                     msg = message;
                 }
 
-                sendMessage(clientHandler.getSocket().getOutputStream(), msg);
+                sendMessage(clientHandler.getSocket(), msg);
             }
         }
     }
 
-    public static void sendMessage(OutputStream outputStream, String message) {
+    public static void sendMessage(Socket socket, String message) {
         try {
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"), true);
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
             writer.println(message);
             writer.flush();
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static String readMessage(InputStream inputStream) {
+    public static String readMessage(Socket socket) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String readLine = reader.readLine();
             if (readLine.equals("PONG ")) {
                 String[] trimmedString = readLine.split(" ");
                 readLine = trimmedString[0];
+            } else if (readLine.split("")[5].equals("/")) {
+                Commands.checkCommand(socket, readLine);
             }
             return readLine;
         } catch (IOException e) {

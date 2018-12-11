@@ -22,9 +22,9 @@ public class ClientHandler extends Thread {
         disconnectIdle.start();
         while (true) {
             try {
-                String message = Main.readMessage(socket.getInputStream());
+                String message = Main.readMessage(socket);
                 if (!message.equals("PONG")) {
-                    Main.sendMessage(socket.getOutputStream(), "+OK " + Main.encodeMessage(message));
+                    Main.sendMessage(socket, "+OK " + Main.encodeMessage(message));
                     Main.broadcastMessage(this, message);
                 }
             } catch (IOException e) {
