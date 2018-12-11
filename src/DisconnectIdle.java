@@ -14,15 +14,17 @@ public class DisconnectIdle extends Thread {
             try {
                 Thread.sleep(6000);
                 Main.sendMessage(socket.getOutputStream(), "PING");
+                String rsp = Main.readMessage(socket.getInputStream());
+                //TODO The heartbeat doesn't work !
+
 
                 for (int i = 0; i < 10; i++) {
-                    Thread.sleep(1000);
-                    String rsp = Main.readMessage(socket.getInputStream());
+//                    Thread.sleep(1000);
                     assert rsp != null;
                     if (rsp.equals("PONG")) {
                         i = 10;
                     }
-                    if (i == 9){
+                    if (i == 9) {
                         socket.close();
                     }
                 }
@@ -32,4 +34,5 @@ public class DisconnectIdle extends Thread {
             }
         }
     }
+
 }
