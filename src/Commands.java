@@ -7,7 +7,7 @@ public class Commands {
     }
 
     public static String getCommandList() {
-        return "BCTS Here is a list of all available commands:&/list : View a list of all online users&/msg <user> <message> : Send a private message&&/group list : View a list of all groups&/group create <groupname> : Create a group&/group join <groupname> : join a group&/group leave <groupname> : Leave a group&/group msg <groupname> : Send a message to all members of this group&/group kick <groupname> <user> : Kick a groupmember (owners only)";
+        return "BCST Here is a list of all available commands:&/list : View a list of all online users&/msg <user> <message> : Send a private message&&/group list : View a list of all groups&/group create <groupname> : Create a group&/group join <groupname> : join a group&/group leave <groupname> : Leave a group&/group msg <groupname> : Send a message to all members of this group&/group kick <groupname> <user> : Kick a groupmember (owners only)";
     }
 
     public static void checkCommand(Socket socket, String readLine) {

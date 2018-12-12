@@ -45,7 +45,7 @@ public class Main {
         }
     }
 
-    public static void broadcastMessage(ClientHandler handler, String message) throws IOException {
+    public static void broadcastMessage(ClientHandler handler, String message) {
         for (ClientHandler clientHandler : clientHandlers) {
             if (!clientHandler.equals(handler)) {
                 String msg;
@@ -76,11 +76,10 @@ public class Main {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String readLine = reader.readLine();
-            if (readLine.equals("PONG ")) {
-                String[] trimmedString = readLine.split(" ");
-                readLine = trimmedString[0];
-            } else if (readLine.split("")[5].equals("/")) {
-                Commands.checkCommand(socket, readLine);
+            if (readLine != null) {
+                if (readLine.startsWith("BCST /")) {
+                    Commands.checkCommand(socket, readLine);
+                }
             }
             return readLine;
         } catch (IOException e) {
