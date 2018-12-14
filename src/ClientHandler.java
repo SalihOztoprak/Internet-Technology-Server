@@ -1,14 +1,12 @@
-import java.io.*;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Base64;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ClientHandler extends Thread {
-    private DateFormat date = new SimpleDateFormat("yyyy/MM/dd");
-    private DateFormat time = new SimpleDateFormat("hh:mm:ss");
     private final String username;
     private final Socket socket;
+    private Timer timer;
+
 
     public ClientHandler(String username, Socket socket) {
         this.username = username;
@@ -18,30 +16,52 @@ public class ClientHandler extends Thread {
     @Override
     public void run() {
         super.run();
-        DisconnectIdle disconnectIdle = new DisconnectIdle(socket);
-        disconnectIdle.start();
+        pingSender();
+        inactiveTimer();
         while (true) {
             try {
-                String message = Main.readMessage(socket.getInputStream());
-//                if (!message.equals("PONG")) {
-                    Main.sendMessage(socket.getOutputStream(), "+OK " + Main.encodeMessage(message));
-                    Main.broadcastMessage(this, message);
-//                }
-            } catch (IOException e) {
+                String message = Main.readMessage(socket);
+                if (message != null) {
+                    System.out.println("Resetting the timer");
+                    inactiveTimer();
+                    if (!message.equals("PONG ")) {
+                        Main.broadcastMessage(this, message);
+                    }
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
-                break;
             }
-
-
         }
     }
 
-    public DateFormat getDate() {
-        return date;
+    private void pingSender() {
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(
+                new TimerTask() {
+                    public void run() {
+                        Main.sendMessage(socket, "PING");
+                    }
+                },
+                60000,
+                60000);
     }
 
-    public DateFormat getTime() {
-        return time;
+    private void inactiveTimer() {
+        try {
+            timer.cancel();
+        } catch (NullPointerException npe){
+            System.out.println("No timer found, creating one...");
+        }
+        timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Close this maddafakka");
+                timer.cancel();
+                //TODO fix a way to close the socket properly
+            }
+        };
+        timer.schedule(timerTask, 70000);
     }
 
     public Socket getSocket() {
