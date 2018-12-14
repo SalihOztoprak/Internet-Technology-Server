@@ -61,7 +61,7 @@ public class ClientHandler extends Thread {
                 //TODO fix a way to close the socket properly
             }
         };
-        timer.schedule(timerTask, 70000);
+        timer.schedule(timerTask, 63000);
     }
 
     public Socket getSocket() {
