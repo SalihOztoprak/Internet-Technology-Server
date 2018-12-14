@@ -3,6 +3,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ClientHandler extends Thread {
+    boolean running = true;
     private final String username;
     private final Socket socket;
     private Timer timer;
@@ -18,7 +19,7 @@ public class ClientHandler extends Thread {
         super.run();
         pingSender();
         inactiveTimer();
-        while (true) {
+        while (running) {
             try {
                 String message = Main.readMessage(socket);
                 if (message != null) {
@@ -39,7 +40,11 @@ public class ClientHandler extends Thread {
         t.scheduleAtFixedRate(
                 new TimerTask() {
                     public void run() {
-                        Main.sendMessage(socket, "PING");
+                        if (running) {
+                            Main.sendMessage(socket, "PING");
+                        } else {
+                            this.cancel();
+                        }
                     }
                 },
                 60000,
@@ -58,10 +63,10 @@ public class ClientHandler extends Thread {
             public void run() {
                 System.out.println("Close this maddafakka");
                 timer.cancel();
-                //TODO fix a way to close the socket properly
+                disconnect();
             }
         };
-        timer.schedule(timerTask, 70000);
+        timer.schedule(timerTask, 63000);
     }
 
     public Socket getSocket() {
@@ -70,5 +75,10 @@ public class ClientHandler extends Thread {
 
     public String getUsername() {
         return username;
+    }
+
+    private void disconnect(){
+        running = false;
+        Main.kickClient(this);
     }
 }

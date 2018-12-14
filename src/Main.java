@@ -68,7 +68,7 @@ public class Main {
             writer.println(message);
             writer.flush();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Can't send message since client has disconnected");
         }
     }
 
@@ -83,12 +83,29 @@ public class Main {
             }
             return readLine;
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Can't read message since client has disconnected");
         }
         return null;
     }
 
     public static String encodeMessage(String message) {
         return Base64.getEncoder().encodeToString(MD5.getMd5(message));
+    }
+
+    public static void kickClient(ClientHandler handler) {
+        for (int i = 0; i < clientHandlers.size(); i++) {
+            if (clientHandlers.get(i).equals(handler)) {
+                clientHandlers.remove(i);
+                break;
+            }
+        }
+
+        try {
+            handler.getSocket().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        handler.interrupt();
     }
 }
