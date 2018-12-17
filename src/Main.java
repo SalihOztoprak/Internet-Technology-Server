@@ -26,7 +26,7 @@ public class Main {
                 OutputStream os = socket.getOutputStream();
 
                 sendMessage(socket, "HELO");
-                String message = readMessage(socket);
+                String message = readMessage(socket,null);
                 sendMessage(socket, "+OK " + encodeMessage(message));
                 sendMessage(socket, "BCST To view all commands, type /help");
 
@@ -72,13 +72,13 @@ public class Main {
         }
     }
 
-    public static String readMessage(Socket socket) {
+    public static String readMessage(Socket socket, ClientHandler handler) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String readLine = reader.readLine();
             if (readLine != null) {
                 if (readLine.startsWith("BCST /")) {
-                    Commands.checkCommand(socket, readLine);
+                    Commands.checkCommand(handler, readLine);
                 }
             }
             return readLine;
@@ -107,5 +107,9 @@ public class Main {
         }
 
         handler.interrupt();
+    }
+
+    public static ArrayList<ClientHandler> getClientHandlers() {
+        return clientHandlers;
     }
 }

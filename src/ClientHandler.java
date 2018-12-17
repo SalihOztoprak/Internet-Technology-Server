@@ -3,7 +3,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ClientHandler extends Thread {
-    boolean running = true;
+    private boolean running = true;
     private final String username;
     private final Socket socket;
     private Timer timer;
@@ -21,7 +21,7 @@ public class ClientHandler extends Thread {
         inactiveTimer();
         while (running) {
             try {
-                String message = Main.readMessage(socket);
+                String message = Main.readMessage(socket,this);
                 if (message != null) {
                     System.out.println("Resetting the timer");
                     inactiveTimer();
