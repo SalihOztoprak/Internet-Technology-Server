@@ -8,6 +8,7 @@ import java.util.Base64;
 public class Main {
     private final static int PORT = 1337;
     private static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    private static ArrayList<Group> groups = new ArrayList<>();
 
     public static void main(String[] args) {
         new Main().run();
@@ -26,7 +27,7 @@ public class Main {
                 OutputStream os = socket.getOutputStream();
 
                 sendMessage(socket, "HELO");
-                String message = readMessage(socket,null);
+                String message = readMessage(socket, null);
                 sendMessage(socket, "+OK " + encodeMessage(message));
                 sendMessage(socket, "BCST To view all commands, type /help");
 
@@ -45,18 +46,22 @@ public class Main {
         }
     }
 
-    public static void broadcastMessage(ClientHandler handler, String message) {
-        for (ClientHandler clientHandler : clientHandlers) {
-            if (!clientHandler.equals(handler)) {
-                String msg;
-                if (handler != null) {
-                    msg = message.replace("BCST ", "");
-                    msg = handler.getUsername() + ": " + msg;
-                    msg = "BCST " + msg;
-                } else {
-                    msg = message;
-                }
+    public static void broadcastMessage(ClientHandler sender, String message) {
+        String msg;
+        if (sender != null) {
+            msg = message.replace("BCST ", "");
+            msg = sender.getUsername() + ": " + msg;
+            //TODO fix that the groupname is in front of the name
+            if (sender.getGroup() != null) {
+                msg = "[" + sender.getGroup().getGroupName() + "] " + msg;
+            }
+            msg = "BCST " + msg;
+        } else {
+            msg = message;
+        }
 
+        for (ClientHandler clientHandler : clientHandlers) {
+            if (!clientHandler.equals(sender)) {
                 sendMessage(clientHandler.getSocket(), msg);
             }
         }
@@ -79,6 +84,7 @@ public class Main {
             if (readLine != null) {
                 if (readLine.startsWith("BCST /")) {
                     Commands.checkCommand(handler, readLine);
+                    return null;
                 }
             }
             return readLine;
@@ -109,7 +115,73 @@ public class Main {
         handler.interrupt();
     }
 
+    public static boolean createGroup(ClientHandler handler, String groupName) {
+        for (Group group1 : groups) {
+            if (group1.getGroupName().equalsIgnoreCase(groupName)) {
+                return false;
+            }
+        }
+
+        Group group = new Group(groupName, handler, new ArrayList<>());
+        group.getMembers().add(handler);
+        groups.add(group);
+        return true;
+    }
+
+    public static boolean joinGroup(ClientHandler handler, String groupName) {
+        if (handler.getGroup() == null) {
+            for (Group group : groups) {
+                if (group.getGroupName().equalsIgnoreCase(groupName)) {
+                    group.getMembers().add(handler);
+                    handler.setGroup(group);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean leaveGroup(ClientHandler handler) {
+        if (handler.getGroup() != null) {
+            for (Group group : groups) {
+                if (group.equals(handler.getGroup())) {
+                    group.getMembers().remove(handler);
+                    handler.setGroup(null);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean kickClientFromGroup(ClientHandler handler, String user) {
+        if (handler.getGroup() != null) {
+            if (handler.getGroup().getOwner().getUsername().equalsIgnoreCase(handler.getUsername())) {
+                for (int i = 0; i < handler.getGroup().getMembers().size(); i++) {
+                    if (handler.getGroup().getMembers().get(i).getUsername().equalsIgnoreCase(user)) {
+                        handler.getGroup().getMembers().remove(i);
+                        handler.getGroup().getMembers().get(i).setGroup(null);
+                        return true;
+                    }
+                }
+                sendMessage(handler.getSocket(), "BCST This person is not in this group!");
+                return false;
+            } else {
+                sendMessage(handler.getSocket(), "BCST You are the owner of this group!");
+                return false;
+            }
+        } else {
+            sendMessage(handler.getSocket(), "BCST You are not in a group!");
+            return false;
+        }
+    }
+
+
     public static ArrayList<ClientHandler> getClientHandlers() {
         return clientHandlers;
+    }
+
+    public static ArrayList<Group> getGroups() {
+        return groups;
     }
 }

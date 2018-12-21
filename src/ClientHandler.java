@@ -6,6 +6,7 @@ public class ClientHandler extends Thread {
     private boolean running = true;
     private final String username;
     private final Socket socket;
+    private Group group = null;
     private Timer timer;
 
 
@@ -75,6 +76,14 @@ public class ClientHandler extends Thread {
 
     public String getUsername() {
         return username;
+    }
+
+    public Group getGroup() {
+        return group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
     }
 
     private void disconnect(){
