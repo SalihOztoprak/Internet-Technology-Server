@@ -23,9 +23,6 @@ public class Main {
             while (true) {
                 Socket socket = serverSocket.accept();
 
-                InputStream is = socket.getInputStream();
-                OutputStream os = socket.getOutputStream();
-
                 sendMessage(socket, "HELO");
                 String message = readMessage(socket, null);
                 sendMessage(socket, "+OK " + encodeMessage(message));
@@ -124,6 +121,7 @@ public class Main {
 
         Group group = new Group(groupName, handler, new ArrayList<>());
         group.getMembers().add(handler);
+        handler.setGroup(group);
         groups.add(group);
         return true;
     }
@@ -147,6 +145,16 @@ public class Main {
                 if (group.equals(handler.getGroup())) {
                     group.getMembers().remove(handler);
                     handler.setGroup(null);
+
+                    if (group.getMembers().size() == 0) {
+                        groups.remove(group);
+                        return true;
+                    }
+
+                    if (group.getOwner().equals(handler)) {
+                        group.setOwner(group.getMembers().get(0));
+                    }
+
                     return true;
                 }
             }
@@ -159,19 +167,19 @@ public class Main {
             if (handler.getGroup().getOwner().getUsername().equalsIgnoreCase(handler.getUsername())) {
                 for (int i = 0; i < handler.getGroup().getMembers().size(); i++) {
                     if (handler.getGroup().getMembers().get(i).getUsername().equalsIgnoreCase(user)) {
-                        handler.getGroup().getMembers().remove(i);
-                        handler.getGroup().getMembers().get(i).setGroup(null);
+                        handler.getGroup().getMembers().remove(handler);
+                        handler.setGroup(null);
                         return true;
                     }
                 }
-                sendMessage(handler.getSocket(), "BCST This person is not in this group!");
+                sendMessage(handler.getSocket(), "ERR This person is not in this group!");
                 return false;
             } else {
-                sendMessage(handler.getSocket(), "BCST You are the owner of this group!");
+                sendMessage(handler.getSocket(), "ERR You are the owner of this group!");
                 return false;
             }
         } else {
-            sendMessage(handler.getSocket(), "BCST You are not in a group!");
+            sendMessage(handler.getSocket(), "ERR You are not in a group!");
             return false;
         }
     }

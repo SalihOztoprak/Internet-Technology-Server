@@ -29,7 +29,7 @@ public class Commands {
                             joinGroup(handler, command);
                             break;
                         case "leave":
-                            leaveGroup(handler, command);
+                            leaveGroup(handler);
                             break;
                         case "msg":
                             privateMessageGroup(handler, command);
@@ -52,8 +52,12 @@ public class Commands {
     }
 
     private static void kickInGroup(ClientHandler handler, String[] command) {
-        if (Main.kickClientFromGroup(handler, command[3])) {
-            Main.sendMessage(handler.getSocket(), "BCST Succesfully kicked " + command[3]);
+        if (command.length >= 3) {
+            if (Main.kickClientFromGroup(handler, command[3])) {
+                Main.sendMessage(handler.getSocket(), "BCST Succesfully kicked " + command[3]);
+            }
+        } else {
+            Main.sendMessage(handler.getSocket(), "ERR Please enter a username");
         }
     }
 
@@ -71,7 +75,7 @@ public class Commands {
         }
     }
 
-    private static void leaveGroup(ClientHandler handler, String[] command) {
+    private static void leaveGroup(ClientHandler handler) {
         if (Main.leaveGroup(handler)) {
             Main.sendMessage(handler.getSocket(), "BCST Succesfully left your group");
         } else {
@@ -80,10 +84,14 @@ public class Commands {
     }
 
     private static void joinGroup(ClientHandler handler, String[] command) {
-        if (Main.joinGroup(handler, command[3])) {
-            Main.sendMessage(handler.getSocket(), "BCST Succesfully joined [" + command[3] + "]");
+        if (command.length >= 3) {
+            if (Main.joinGroup(handler, command[3])) {
+                Main.sendMessage(handler.getSocket(), "BCST Succesfully joined [" + command[3] + "]");
+            } else {
+                Main.sendMessage(handler.getSocket(), "ERR You can't join this group!");
+            }
         } else {
-            Main.sendMessage(handler.getSocket(), "ERR You can't join this group!");
+            Main.sendMessage(handler.getSocket(), "ERR Please specify a group name!");
         }
     }
 

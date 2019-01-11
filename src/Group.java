@@ -22,4 +22,8 @@ public class Group {
     public ArrayList<ClientHandler> getMembers() {
         return members;
     }
+
+    public void setOwner(ClientHandler owner) {
+        this.owner = owner;
+    }
 }
