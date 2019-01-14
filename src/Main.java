@@ -45,6 +45,7 @@ public class Main {
                         break;
                     }
                 }
+                Main.broadcastMessage(null, "BCST " + username + " joined the server");
 
                 ClientHandler clientHandler = new ClientHandler(username, socket);
                 clientHandlers.add(clientHandler);
@@ -110,6 +111,7 @@ public class Main {
         for (int i = 0; i < clientHandlers.size(); i++) {
             if (clientHandlers.get(i).equals(handler)) {
                 clientHandlers.remove(i);
+                Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
                 break;
             }
         }

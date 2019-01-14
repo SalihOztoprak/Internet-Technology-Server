@@ -16,6 +16,9 @@ public class Commands {
             case "/msg":
                 sendPrivateMessage(handler, command);
                 break;
+            case "/quit":
+                Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
+                break;
             case "/group":
                 if (command.length > 2) {
                     switch (command[2]) {
