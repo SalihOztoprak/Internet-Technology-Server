@@ -4,7 +4,7 @@ import java.util.TimerTask;
 
 public class ClientHandler extends Thread {
     private boolean running = true;
-    private final String username;
+    private String username;
     private final Socket socket;
     private Group group = null;
     private Timer timer;
@@ -84,6 +84,10 @@ public class ClientHandler extends Thread {
 
     public void setGroup(Group group) {
         this.group = group;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     private void disconnect(){
