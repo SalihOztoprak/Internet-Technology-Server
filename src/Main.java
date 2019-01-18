@@ -1,3 +1,5 @@
+import com.sun.security.ntlm.Client;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -7,6 +9,7 @@ import java.util.Base64;
 
 public class Main {
     private final static int PORT = 1337;
+    public static final String BREAKLINE = "<br>";
     private static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private static ArrayList<Group> groups = new ArrayList<>();
 
@@ -15,6 +18,7 @@ public class Main {
     }
 
     private void run() {
+        //TODO fix that more users can login at the same time
         connectToServer();
     }
 
@@ -23,15 +27,25 @@ public class Main {
             while (true) {
                 Socket socket = serverSocket.accept();
 
+                String username = null;
+
                 sendMessage(socket, "HELO");
                 String message = readMessage(socket, null);
-                sendMessage(socket, "+OK " + encodeMessage(message));
-                sendMessage(socket, "BCST To view all commands, type /help");
-
-                String username = null;
                 if (message != null) {
                     username = message.replace("HELO ", "");
                 }
+
+                sendMessage(socket, "+OK " + encodeMessage(message));
+                sendMessage(socket, "BCST To view all commands, type /help");
+
+                for (ClientHandler clientHandler1 : clientHandlers) {
+                    if (clientHandler1.getUsername().equalsIgnoreCase(username)) {
+                        username = username + "#";
+                        sendMessage(socket, "BCST Your name has already been taken, so we changed it to " + username);
+                        break;
+                    }
+                }
+                Main.broadcastMessage(null, "BCST " + username + " joined the server");
 
                 ClientHandler clientHandler ;
                 for (ClientHandler client : clientHandlers) {
@@ -65,9 +79,7 @@ public class Main {
         }
 
         for (ClientHandler clientHandler : clientHandlers) {
-            if (!clientHandler.equals(sender)) {
-                sendMessage(clientHandler.getSocket(), msg);
-            }
+            sendMessage(clientHandler.getSocket(), msg);
         }
     }
 
@@ -103,13 +115,16 @@ public class Main {
     }
 
     public static void kickClient(ClientHandler handler) {
+        //Find the client you want to kick from the server
         for (int i = 0; i < clientHandlers.size(); i++) {
             if (clientHandlers.get(i).equals(handler)) {
                 clientHandlers.remove(i);
+                Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
                 break;
             }
         }
 
+        //Try to close the socket of the client
         try {
             handler.getSocket().close();
         } catch (IOException e) {
@@ -120,12 +135,19 @@ public class Main {
     }
 
     public static boolean createGroup(ClientHandler handler, String groupName) {
+        //Check if you are in a group
+        if (handler.getGroup() != null) {
+            return false;
+        }
+
+        //Check if the name of your group already exists
         for (Group group1 : groups) {
             if (group1.getGroupName().equalsIgnoreCase(groupName)) {
                 return false;
             }
         }
 
+        //Create the group and join it
         Group group = new Group(groupName, handler, new ArrayList<>());
         group.getMembers().add(handler);
         handler.setGroup(group);
@@ -134,8 +156,10 @@ public class Main {
     }
 
     public static boolean joinGroup(ClientHandler handler, String groupName) {
+        //Check if you aren't in a group already
         if (handler.getGroup() == null) {
             for (Group group : groups) {
+                //Find the group and join
                 if (group.getGroupName().equalsIgnoreCase(groupName)) {
                     group.getMembers().add(handler);
                     handler.setGroup(group);
@@ -147,17 +171,21 @@ public class Main {
     }
 
     public static boolean leaveGroup(ClientHandler handler) {
+        //Check if client is in a group
         if (handler.getGroup() != null) {
             for (Group group : groups) {
+                //Find the group of the user
                 if (group.equals(handler.getGroup())) {
                     group.getMembers().remove(handler);
                     handler.setGroup(null);
 
+                    //If you are the last person in the group, delete it
                     if (group.getMembers().size() == 0) {
                         groups.remove(group);
                         return true;
                     }
 
+                    //If you are the owner, make someone else the owner
                     if (group.getOwner().equals(handler)) {
                         group.setOwner(group.getMembers().get(0));
                     }
@@ -170,27 +198,39 @@ public class Main {
     }
 
     public static boolean kickClientFromGroup(ClientHandler handler, String user) {
-        if (handler.getGroup() != null) {
-            if (handler.getGroup().getOwner().getUsername().equalsIgnoreCase(handler.getUsername())) {
-                for (int i = 0; i < handler.getGroup().getMembers().size(); i++) {
-                    if (handler.getGroup().getMembers().get(i).getUsername().equalsIgnoreCase(user)) {
-                        handler.getGroup().getMembers().remove(handler);
-                        handler.setGroup(null);
-                        return true;
-                    }
-                }
-                sendMessage(handler.getSocket(), "ERR This person is not in this group!");
-                return false;
-            } else {
-                sendMessage(handler.getSocket(), "ERR You are the owner of this group!");
-                return false;
-            }
-        } else {
+        //Check if you are in a group
+        if (handler.getGroup() == null) {
             sendMessage(handler.getSocket(), "ERR You are not in a group!");
             return false;
         }
-    }
 
+        //Check if you are the owner of the group
+        if (handler.getGroup().getOwner() != handler) {
+            sendMessage(handler.getSocket(), "ERR You are not the owner of this group!");
+            return false;
+        }
+
+        //Check if you don't want to kick yourself
+        if (handler.getUsername().equalsIgnoreCase(user)) {
+            sendMessage(handler.getSocket(), "ERR You cannot kick yourself!");
+            return false;
+        }
+
+        //Try to find the person you want to kick and kick him
+        for (int i = 0; i < handler.getGroup().getMembers().size(); i++) {
+            ClientHandler currentHandler = handler.getGroup().getMembers().get(i);
+            if (currentHandler.getUsername().equalsIgnoreCase(user)) {
+                handler.getGroup().getMembers().remove(currentHandler);
+                currentHandler.setGroup(null);
+                Main.sendMessage(currentHandler.getSocket(), "BCST You have been kicked from [" + handler.getGroup().getGroupName() + "]");
+                return true;
+            }
+        }
+
+        //If you couldn't find the person throw error
+        sendMessage(handler.getSocket(), "ERR This person is not in this group!");
+        return false;
+    }
 
     public static ArrayList<ClientHandler> getClientHandlers() {
         return clientHandlers;

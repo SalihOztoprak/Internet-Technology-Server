@@ -16,6 +16,9 @@ public class Commands {
             case "/msg":
                 sendPrivateMessage(handler, command);
                 break;
+            case "/quit":
+                Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
+                break;
             case "/group":
                 if (command.length > 2) {
                     switch (command[2]) {
@@ -65,13 +68,12 @@ public class Commands {
         String message = commandToMessage(command);
 
         if (handler.getGroup() != null) {
+            message = "BCST (" + handler.getUsername() + " -> [" + handler.getGroup().getGroupName() + "]): " + message;
             for (int i = 0; i < handler.getGroup().getMembers().size(); i++) {
-                if (!handler.getGroup().getMembers().get(i).getUsername().equalsIgnoreCase(handler.getUsername())) {
-                    Main.sendMessage(handler.getSocket(), "BCST (" + handler.getUsername() + " -> [" + handler.getGroup().getGroupName() + "]) : " + message);
-                }
+                Main.sendMessage(handler.getGroup().getMembers().get(i).getSocket(), message);
             }
         } else {
-            Main.sendMessage(handler.getSocket(), "ERR You are not in this group!");
+            Main.sendMessage(handler.getSocket(), "ERR You are not in a group!");
         }
     }
 
@@ -84,7 +86,7 @@ public class Commands {
     }
 
     private static void joinGroup(ClientHandler handler, String[] command) {
-        if (command.length >= 3) {
+        if (command.length > 3) {
             if (Main.joinGroup(handler, command[3])) {
                 Main.sendMessage(handler.getSocket(), "BCST Succesfully joined [" + command[3] + "]");
             } else {
@@ -96,10 +98,14 @@ public class Commands {
     }
 
     private static void createGroup(ClientHandler handler, String[] command) {
-        if (Main.createGroup(handler, command[3])) {
-            Main.sendMessage(handler.getSocket(), "BCST Succesfully created [" + command[3] + "]");
+        if (command.length > 3) {
+            if (Main.createGroup(handler, command[3])) {
+                Main.sendMessage(handler.getSocket(), "BCST Succesfully created [" + command[3] + "]");
+            } else {
+                Main.sendMessage(handler.getSocket(), "ERR you can't create this group!");
+            }
         } else {
-            Main.sendMessage(handler.getSocket(), "ERR This group already exists!");
+            Main.sendMessage(handler.getSocket(), "ERR Please specify a group name!");
         }
     }
 
@@ -107,10 +113,10 @@ public class Commands {
         StringBuilder groups;
         groups = new StringBuilder();
         for (int i = 0; i < Main.getGroups().size(); i++) {
-            groups.append(" - ").append(Main.getGroups().get(i).getGroupName()).append("&");
+            groups.append(" - ").append(Main.getGroups().get(i).getGroupName()).append(Main.BREAKLINE);
         }
 
-        Main.sendMessage(handler.getSocket(), "BCST List of groups:&" + groups);
+        Main.sendMessage(handler.getSocket(), "BCST List of available groups:" + Main.BREAKLINE + groups);
     }
 
     private static void sendPrivateMessage(ClientHandler handler, String[] command) {
@@ -118,7 +124,13 @@ public class Commands {
 
         for (int i = 0; i < Main.getClientHandlers().size(); i++) {
             if (Main.getClientHandlers().get(i).getUsername().equalsIgnoreCase(command[2])) {
-                Main.sendMessage(Main.getClientHandlers().get(i).getSocket(), "BCST (" + handler.getUsername() + " -> " + command[2] + "): " + message);
+                if (Main.getClientHandlers().get(i) == handler){
+                    Main.sendMessage(handler.getSocket(), "ERR You cannot send a message to yourself");
+                    return;
+                }
+                message = "BCST (" + handler.getUsername() + " -> " + command[2] + "): " + message;
+                Main.sendMessage(Main.getClientHandlers().get(i).getSocket(), message);
+                Main.sendMessage(handler.getSocket(), message);
                 return;
             }
         }
@@ -130,22 +142,22 @@ public class Commands {
         StringBuilder users;
         users = new StringBuilder();
         for (int i = 0; i < Main.getClientHandlers().size(); i++) {
-            users.append(" - ").append(Main.getClientHandlers().get(i).getUsername()).append("&");
+            users.append(" - ").append(Main.getClientHandlers().get(i).getUsername()).append(Main.BREAKLINE);
         }
 
-        Main.sendMessage(handler.getSocket(), "BCST List of online users:&" + users);
+        Main.sendMessage(handler.getSocket(), "BCST List of online users:" + Main.BREAKLINE + users);
     }
 
     private static void getCommandList(ClientHandler handler) {
         Main.sendMessage(handler.getSocket(),
-                "BCST Here is a list of all available commands:&" +
-                        "/list : View a list of all online users&" +
-                        "/msg <user> <message> : Send a private message&&" +
-                        "/group list : View a list of all groups&" +
-                        "/group create <groupname> : Create a group&" +
-                        "/group join <groupname> : join a group&" +
-                        "/group leave : Leave your group&" +
-                        "/group msg <message> : Send a message to all members of this group&" +
+                "BCST Here is a list of all available commands:" + Main.BREAKLINE +
+                        "/list : View a list of all online users" + Main.BREAKLINE +
+                        "/msg <user> <message> : Send a private message" + Main.BREAKLINE +
+                        "/group list : View a list of all groups" + Main.BREAKLINE +
+                        "/group create <groupname> : Create a group" + Main.BREAKLINE +
+                        "/group join <groupname> : join a group" + Main.BREAKLINE +
+                        "/group leave : Leave your group" + Main.BREAKLINE +
+                        "/group msg <message> : Send a message to all members of this group" + Main.BREAKLINE +
                         "/group kick <groupname> <user> : Kick a groupmember (owners only)");
     }
 
