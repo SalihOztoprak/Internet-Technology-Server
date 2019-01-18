@@ -33,7 +33,15 @@ public class Main {
                     username = message.replace("HELO ", "");
                 }
 
-                ClientHandler clientHandler = new ClientHandler(username, socket);
+                ClientHandler clientHandler ;
+                for (ClientHandler client : clientHandlers) {
+                    if (client.getUsername().equals(username)) {
+                        sendMessage(socket, "The username " + username + " is already taken, please try a new name");
+                        username = message.replace("HELO ", "");
+                    }
+
+                }
+                clientHandler = new ClientHandler(username,socket);
                 clientHandlers.add(clientHandler);
                 clientHandler.start();
             }
@@ -48,7 +56,6 @@ public class Main {
         if (sender != null) {
             msg = message.replace("BCST ", "");
             msg = sender.getUsername() + ": " + msg;
-            //TODO fix that the groupname is in front of the name
             if (sender.getGroup() != null) {
                 msg = "[" + sender.getGroup().getGroupName() + "] " + msg;
             }
