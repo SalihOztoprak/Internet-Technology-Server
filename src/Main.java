@@ -33,6 +33,7 @@ public class Main {
                 String message = readMessage(socket, null);
                 if (message != null) {
                     username = message.replace("HELO ", "");
+                    username = username.replace(" ", "_");
                 }
 
                 sendMessage(socket, "+OK " + encodeMessage(message));
