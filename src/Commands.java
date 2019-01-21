@@ -14,7 +14,11 @@ public class Commands {
                 getOnlineUsers(handler);
                 break;
             case "/msg":
-                sendPrivateMessage(handler, command);
+                if (command.length > 2) {
+                    sendPrivateMessage(handler, readLine);
+                } else {
+                    Main.sendMessage(handler.getSocket(), "ERR Cannot send the message");
+                }
                 break;
             case "/quit":
                 Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
@@ -119,18 +123,19 @@ public class Commands {
         Main.sendMessage(handler.getSocket(), "BCST List of available groups:" + Main.BREAKLINE + groups);
     }
 
-    private static void sendPrivateMessage(ClientHandler handler, String[] command) {
-        String message = commandToMessage(command);
+    private static void sendPrivateMessage(ClientHandler handler, String line) {
+        String[] splitLine = line.split(" ");
+        String receiver = splitLine[2];
+        line = line.replaceFirst("BCST /msg " + receiver + " ", "");
 
         for (int i = 0; i < Main.getClientHandlers().size(); i++) {
-            if (Main.getClientHandlers().get(i).getUsername().equalsIgnoreCase(command[2])) {
+            if (Main.getClientHandlers().get(i).getUsername().equalsIgnoreCase(receiver)) {
                 if (Main.getClientHandlers().get(i) == handler) {
                     Main.sendMessage(handler.getSocket(), "ERR You cannot send a message to yourself");
                     return;
                 }
-                message = "BCST (" + handler.getUsername() + " -> " + command[2] + "): " + message;
+                String message = "ENCR " + handler.getUsername() + " " + line;
                 Main.sendMessage(Main.getClientHandlers().get(i).getSocket(), message);
-                Main.sendMessage(handler.getSocket(), message);
                 return;
             }
         }

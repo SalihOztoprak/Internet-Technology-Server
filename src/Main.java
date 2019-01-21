@@ -71,7 +71,7 @@ public class Main {
 
     public static void broadcastMessage(ClientHandler sender, String message) {
         String msg;
-        if (sender != null) {
+        if (sender != null && message.startsWith("BCST")) {
             msg = message.replace("BCST ", "");
             msg = sender.getUsername() + ": " + msg;
             if (sender.getGroup() != null) {
@@ -83,7 +83,9 @@ public class Main {
         }
 
         for (ClientHandler clientHandler : clientHandlers) {
-            sendMessage(clientHandler.getSocket(), msg);
+            if (!clientHandler.equals(sender)) {
+                sendMessage(clientHandler.getSocket(), msg);
+            }
         }
     }
 
