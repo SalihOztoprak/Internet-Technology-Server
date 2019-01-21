@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Scanner;
 
 
 public class Main {
@@ -12,6 +13,8 @@ public class Main {
     public static final String BREAKLINE = "<br>";
     private static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private static ArrayList<Group> groups = new ArrayList<>();
+
+    private static String sendFileName;
 
     public static void main(String[] args) {
         new Main().run();
@@ -47,7 +50,7 @@ public class Main {
                 }
                 Main.broadcastMessage(null, "BCST " + username + " joined the server");
 
-                ClientHandler clientHandler ;
+                ClientHandler clientHandler;
                 for (ClientHandler client : clientHandlers) {
                     if (client.getUsername().equals(username)) {
                         sendMessage(socket, "The username " + username + " is already taken, please try a new name");
@@ -55,7 +58,7 @@ public class Main {
                     }
 
                 }
-                clientHandler = new ClientHandler(username,socket);
+                clientHandler = new ClientHandler(username, socket);
                 clientHandlers.add(clientHandler);
                 clientHandler.start();
             }

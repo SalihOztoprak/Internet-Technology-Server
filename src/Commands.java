@@ -124,7 +124,7 @@ public class Commands {
 
         for (int i = 0; i < Main.getClientHandlers().size(); i++) {
             if (Main.getClientHandlers().get(i).getUsername().equalsIgnoreCase(command[2])) {
-                if (Main.getClientHandlers().get(i) == handler){
+                if (Main.getClientHandlers().get(i) == handler) {
                     Main.sendMessage(handler.getSocket(), "ERR You cannot send a message to yourself");
                     return;
                 }
