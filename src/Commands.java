@@ -158,6 +158,7 @@ public class Commands {
                 "BCST Here is a list of all available commands:" + Main.BREAKLINE +
                         "/list : View a list of all online users" + Main.BREAKLINE +
                         "/msg <user> <message> : Send a private message" + Main.BREAKLINE +
+                        "/file <user> <file> : Send a file to a user (located in /Downloads)" + Main.BREAKLINE +
                         "/group list : View a list of all groups" + Main.BREAKLINE +
                         "/group create <groupname> : Create a group" + Main.BREAKLINE +
                         "/group join <groupname> : join a group" + Main.BREAKLINE +

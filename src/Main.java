@@ -5,7 +5,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Scanner;
 
 
 public class Main {
@@ -44,7 +43,7 @@ public class Main {
 
                 for (ClientHandler clientHandler1 : clientHandlers) {
                     if (clientHandler1.getUsername().equalsIgnoreCase(username)) {
-                        username = username + "#";
+                        username = username + "(1)";
                         sendMessage(socket, "BCST Your name has already been taken, so we changed it to " + username);
                         break;
                     }
@@ -107,6 +106,16 @@ public class Main {
                 if (readLine.startsWith("BCST /")) {
                     Commands.checkCommand(handler, readLine);
                     return null;
+                } else if (readLine.startsWith("KEYS") || readLine.startsWith("ENCR")){
+                    String[] splitLine = readLine.split(" ");
+                    for (ClientHandler clientHandler : clientHandlers) {
+                        if (clientHandler.getUsername().equalsIgnoreCase(splitLine[1])) {
+                            String msg = splitLine[0] + " " + handler.getUsername() + " " + splitLine[2];
+                            sendMessage(clientHandler.getSocket(), msg);
+                            return null;
+                        }
+                    }
+                    sendMessage(handler.getSocket(), "ERR User not found");
                 }
             }
             return readLine;
