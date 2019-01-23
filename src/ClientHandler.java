@@ -2,6 +2,9 @@ import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * This class will be used for creating a client on the server
+ */
 public class ClientHandler extends Thread {
     private boolean running = true;
     private String username;
@@ -9,12 +12,21 @@ public class ClientHandler extends Thread {
     private Group group = null;
     private Timer timer;
 
-
+    /**
+     * This is the default constructor for this class
+     *
+     * @param username The username of the client
+     * @param socket   The socket of the client
+     */
     public ClientHandler(String username, Socket socket) {
         this.username = username;
         this.socket = socket;
     }
 
+    /**
+     * This method will be executed when the client joins for the first time
+     * The method is overridden from a thread so different users can join at the same time
+     */
     @Override
     public void run() {
         String username = "";
@@ -67,6 +79,9 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * This method sends a PING message every 60 seconds to make sure the client is still active
+     */
     private void pingSender() {
         Timer t = new Timer();
         t.scheduleAtFixedRate(
@@ -83,6 +98,10 @@ public class ClientHandler extends Thread {
                 60000);
     }
 
+    /**
+     * This method checks if the client has responded with PONG or another message atleast once every 63 seconds
+     * The server kicks the user automatically if the user is idle for more than 63 seconds
+     */
     private void inactiveTimer() {
         try {
             timer.cancel();
@@ -101,28 +120,47 @@ public class ClientHandler extends Thread {
         timer.schedule(timerTask, 63000);
     }
 
+    /**
+     * This method is used to disconnect the client
+     */
+    private void disconnect() {
+        running = false;
+        Main.kickClient(this);
+    }
+
+    /**
+     * This method returns the socket
+     *
+     * @return The socket
+     */
     public Socket getSocket() {
         return socket;
     }
 
+    /**
+     * This method returns the username
+     *
+     * @return The username
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * This method returns the current group
+     *
+     * @return The group
+     */
     public Group getGroup() {
         return group;
     }
 
+    /**
+     * This method sets the current group
+     *
+     * @param group
+     */
     public void setGroup(Group group) {
         this.group = group;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    private void disconnect() {
-        running = false;
-        Main.kickClient(this);
     }
 }

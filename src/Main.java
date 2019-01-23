@@ -1,10 +1,13 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 
-
+/**
+ * This class is used for starting the server
+ */
 public class Main {
     private final static int PORT = 1337;
     public static final String BREAKLINE = "<br>";
@@ -19,6 +22,9 @@ public class Main {
         connectToServer();
     }
 
+    /**
+     * This method let's users connect to the server
+     */
     private static void connectToServer() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
@@ -33,6 +39,12 @@ public class Main {
         }
     }
 
+    /**
+     * This method will broadcast a message to every client that is online
+     *
+     * @param sender  The sender of the message
+     * @param message The message itself
+     */
     public static void broadcastMessage(ClientHandler sender, String message) {
         String msg;
         if (sender != null && message.startsWith("BCST")) {
@@ -53,9 +65,15 @@ public class Main {
         }
     }
 
+    /**
+     * This method will send a message to the given sockey
+     *
+     * @param socket  The socket you want to send the message to
+     * @param message The message you want to send
+     */
     public static void sendMessage(Socket socket, String message) {
         try {
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
             writer.println(message);
             writer.flush();
         } catch (Exception e) {
@@ -63,6 +81,13 @@ public class Main {
         }
     }
 
+    /**
+     * This method will read the message sent by the clients
+     *
+     * @param socket  The socket from the sender
+     * @param handler The clienthandler that send the message
+     * @return The message when it has to be send to other clients, otherwise it is null
+     */
     public static String readMessage(Socket socket, ClientHandler handler) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -71,11 +96,16 @@ public class Main {
                 if (readLine.startsWith("BCST /")) {
                     Commands.checkCommand(handler, readLine);
                     return null;
-                } else if (readLine.startsWith("KEYS") || readLine.startsWith("ENCR")){
+                } else if (readLine.startsWith("KEYS") || readLine.startsWith("ENCR") || readLine.startsWith("FILE")) {
                     String[] splitLine = readLine.split(" ");
                     for (ClientHandler clientHandler : clientHandlers) {
                         if (clientHandler.getUsername().equalsIgnoreCase(splitLine[1])) {
-                            String msg = splitLine[0] + " " + handler.getUsername() + " " + splitLine[2];
+                            String msg;
+                            if (splitLine.length > 3) {
+                                msg = splitLine[0] + " " + handler.getUsername() + " " + splitLine[2] + " " + splitLine[3];
+                            } else {
+                                msg = splitLine[0] + " " + handler.getUsername() + " " + splitLine[2];
+                            }
                             sendMessage(clientHandler.getSocket(), msg);
                             return null;
                         }
@@ -90,15 +120,26 @@ public class Main {
         return null;
     }
 
+    /**
+     * This method encodes the string with a Base64 encoder
+     *
+     * @param message The string you want to encode
+     * @return The Base64 encoded string
+     */
     public static String encodeMessage(String message) {
         try {
             return Base64.getEncoder().encodeToString(MD5.getMd5(message));
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Can't encode message since client has disconnected");
         }
         return null;
     }
 
+    /**
+     * This method kicks the selected client
+     *
+     * @param handler The handler you want to kick
+     */
     public static void kickClient(ClientHandler handler) {
         //Find the client you want to kick from the server
         for (int i = 0; i < clientHandlers.size(); i++) {
@@ -119,6 +160,13 @@ public class Main {
         handler.interrupt();
     }
 
+    /**
+     * This method will create a group and add it to the list of groups
+     *
+     * @param handler   The handler that created the group
+     * @param groupName The name of the group
+     * @return True if the group created successfully
+     */
     public static boolean createGroup(ClientHandler handler, String groupName) {
         //Check if you are in a group
         if (handler.getGroup() != null) {
@@ -140,6 +188,13 @@ public class Main {
         return true;
     }
 
+    /**
+     * This method lets you join the given group
+     *
+     * @param handler   The handler that wants to join the group
+     * @param groupName The name of the group you want to join
+     * @return True if the group joined successfully
+     */
     public static boolean joinGroup(ClientHandler handler, String groupName) {
         //Check if you aren't in a group already
         if (handler.getGroup() == null) {
@@ -155,6 +210,12 @@ public class Main {
         return false;
     }
 
+    /**
+     * This method lets you leave it's current group
+     *
+     * @param handler The handler that wants to leave his group
+     * @return True if the group left successfully
+     */
     public static boolean leaveGroup(ClientHandler handler) {
         //Check if client is in a group
         if (handler.getGroup() != null) {
@@ -182,6 +243,13 @@ public class Main {
         return false;
     }
 
+    /**
+     * This method kicks a client from the group
+     *
+     * @param handler The user that wants to kick a client (has to be the owner)
+     * @param user    The user that has to be kicked
+     * @return True if the kicking was successful
+     */
     public static boolean kickClientFromGroup(ClientHandler handler, String user) {
         //Check if you are in a group
         if (handler.getGroup() == null) {
@@ -217,10 +285,20 @@ public class Main {
         return false;
     }
 
+    /**
+     * This method returns the arraylist of clienthandlers
+     *
+     * @return The arraylist with clienthandlers
+     */
     public static ArrayList<ClientHandler> getClientHandlers() {
         return clientHandlers;
     }
 
+    /**
+     * This method returns the arraylist of groups
+     *
+     * @return The arraylist with groups
+     */
     public static ArrayList<Group> getGroups() {
         return groups;
     }

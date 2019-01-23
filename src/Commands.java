@@ -1,9 +1,18 @@
+/**
+ * This class is used to check given commands
+ */
 public class Commands {
 
     public Commands() {
         //Left blank
     }
 
+    /**
+     * This method checks the given command and sends it to the proper method
+     *
+     * @param handler  The handler that executed the command
+     * @param readLine The complete line send by the client
+     */
     public static void checkCommand(ClientHandler handler, String readLine) {
         String[] command = readLine.split(" ");
         switch (command[1]) {
@@ -24,7 +33,7 @@ public class Commands {
                 Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
                 break;
             case "/file":
-                Main.sendMessage(handler.getSocket(),"ERR Cannot send the file");
+                Main.sendMessage(handler.getSocket(), "ERR Cannot send the file");
             case "/group":
                 if (command.length > 2) {
                     switch (command[2]) {
@@ -60,6 +69,12 @@ public class Commands {
         }
     }
 
+    /**
+     * This method will be executed when someone gets kicked from a group
+     *
+     * @param handler The handler that executed the command
+     * @param command The command
+     */
     private static void kickInGroup(ClientHandler handler, String[] command) {
         if (command.length >= 3) {
             if (Main.kickClientFromGroup(handler, command[3])) {
@@ -70,6 +85,12 @@ public class Commands {
         }
     }
 
+    /**
+     * This method will be executed when someone sends a private message to a group
+     *
+     * @param handler The handler that executed the command
+     * @param command The command
+     */
     private static void privateMessageGroup(ClientHandler handler, String[] command) {
         String message = commandToMessage(command);
 
@@ -83,6 +104,11 @@ public class Commands {
         }
     }
 
+    /**
+     * This method will be executed when someone wants to leave their group
+     *
+     * @param handler The handler that executed the command
+     */
     private static void leaveGroup(ClientHandler handler) {
         if (Main.leaveGroup(handler)) {
             Main.sendMessage(handler.getSocket(), "BCST Succesfully left your group");
@@ -91,6 +117,12 @@ public class Commands {
         }
     }
 
+    /**
+     * This method will be executed when someone wants to join a group
+     *
+     * @param handler The handler that executed the command
+     * @param command The command
+     */
     private static void joinGroup(ClientHandler handler, String[] command) {
         if (command.length > 3) {
             if (Main.joinGroup(handler, command[3])) {
@@ -103,6 +135,12 @@ public class Commands {
         }
     }
 
+    /**
+     * This method will be executed when someone creates a group
+     *
+     * @param handler The handler that executed the command
+     * @param command The command
+     */
     private static void createGroup(ClientHandler handler, String[] command) {
         if (command.length > 3) {
             if (Main.createGroup(handler, command[3])) {
@@ -115,6 +153,11 @@ public class Commands {
         }
     }
 
+    /**
+     * This method will be executed when someone requests a list of groups
+     *
+     * @param handler The handler that executed the command
+     */
     private static void getGroupList(ClientHandler handler) {
         StringBuilder groups;
         groups = new StringBuilder();
@@ -125,6 +168,13 @@ public class Commands {
         Main.sendMessage(handler.getSocket(), "BCST List of available groups:" + Main.BREAKLINE + groups);
     }
 
+    /**
+     * This method will be executed when someone sends a private message to another user
+     * The method will not be used when end-to-end encryption is active in the client
+     *
+     * @param handler The handler that executed the command
+     * @param line    The command
+     */
     private static void sendPrivateMessage(ClientHandler handler, String line) {
         String[] splitLine = line.split(" ");
         String receiver = splitLine[2];
@@ -145,6 +195,11 @@ public class Commands {
         Main.sendMessage(handler.getSocket(), "ERR User not found");
     }
 
+    /**
+     * This method returns a list of online users
+     *
+     * @param handler The handler that executed the command
+     */
     private static void getOnlineUsers(ClientHandler handler) {
         StringBuilder users;
         users = new StringBuilder();
@@ -155,6 +210,11 @@ public class Commands {
         Main.sendMessage(handler.getSocket(), "BCST List of online users:" + Main.BREAKLINE + users);
     }
 
+    /**
+     * This method returns a list with all available commands
+     *
+     * @param handler The handler that executed the command
+     */
     private static void getCommandList(ClientHandler handler) {
         Main.sendMessage(handler.getSocket(),
                 "BCST Here is a list of all available commands:" + Main.BREAKLINE +
@@ -169,6 +229,12 @@ public class Commands {
                         "/group kick <groupname> <user> : Kick a groupmember (owners only)");
     }
 
+    /**
+     * This method will return only the message that has to be send
+     *
+     * @param command The message that is split into an array
+     * @return The message without the command and receiver in front of it
+     */
     private static String commandToMessage(String[] command) {
         StringBuilder message;
         message = new StringBuilder();
