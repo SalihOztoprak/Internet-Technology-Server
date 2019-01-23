@@ -1,5 +1,4 @@
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class MD5 {
 
@@ -11,7 +10,7 @@ public class MD5 {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             return md.digest(input.getBytes());
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             System.out.println("User logged out without entering his name");
         }
         return null;

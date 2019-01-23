@@ -1,5 +1,3 @@
-import com.sun.security.ntlm.Client;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,14 +11,11 @@ public class Main {
     private static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private static ArrayList<Group> groups = new ArrayList<>();
 
-    private static String sendFileName;
-
     public static void main(String[] args) {
         new Main().run();
     }
 
     private void run() {
-        //TODO fix that more users can login at the same time
         connectToServer();
     }
 
@@ -28,43 +23,13 @@ public class Main {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
                 Socket socket = serverSocket.accept();
-
-                String username = null;
-
-                sendMessage(socket, "HELO");
-                String message = readMessage(socket, null);
-                if (message != null) {
-                    username = message.replace("HELO ", "");
-                    username = username.replace(" ", "_");
-                }
-
-                sendMessage(socket, "+OK " + encodeMessage(message));
-                sendMessage(socket, "BCST To view all commands, type /help");
-
-                for (ClientHandler clientHandler1 : clientHandlers) {
-                    if (clientHandler1.getUsername().equalsIgnoreCase(username)) {
-                        username = username + "(1)";
-                        sendMessage(socket, "BCST Your name has already been taken, so we changed it to " + username);
-                        break;
-                    }
-                }
-                Main.broadcastMessage(null, "BCST " + username + " joined the server");
-
-                ClientHandler clientHandler;
-                for (ClientHandler client : clientHandlers) {
-                    if (client.getUsername().equals(username)) {
-                        sendMessage(socket, "The username " + username + " is already taken, please try a new name");
-                        username = message.replace("HELO ", "");
-                    }
-
-                }
-                clientHandler = new ClientHandler(username, socket);
+                ClientHandler clientHandler = new ClientHandler("", socket);
                 clientHandlers.add(clientHandler);
                 clientHandler.start();
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("A user tried to log in but something went wrong with his connection");
         }
     }
 
@@ -126,7 +91,12 @@ public class Main {
     }
 
     public static String encodeMessage(String message) {
-        return Base64.getEncoder().encodeToString(MD5.getMd5(message));
+        try {
+            return Base64.getEncoder().encodeToString(MD5.getMd5(message));
+        } catch (Exception e){
+            System.out.println("Can't encode message since client has disconnected");
+        }
+        return null;
     }
 
     public static void kickClient(ClientHandler handler) {

@@ -17,16 +17,48 @@ public class ClientHandler extends Thread {
 
     @Override
     public void run() {
-        super.run();
+        String username = "";
+        Main.sendMessage(socket, "HELO");
+        String message = Main.readMessage(socket, null);
+
+        if (message != null) {
+            username = message.replace("HELO ", "");
+            username = username.replace(" ", "_");
+        }
+
+        Main.sendMessage(socket, "+OK " + Main.encodeMessage(message));
+        Main.sendMessage(socket, "BCST To view all commands, type /help");
+
+        for (ClientHandler clientHandler1 : Main.getClientHandlers()) {
+            if (clientHandler1.getUsername().equalsIgnoreCase(username)) {
+                username = username + "(1)";
+                Main.sendMessage(socket, "BCST Your name has already been taken, so we changed it to " + username);
+                break;
+            }
+        }
+
+        Main.broadcastMessage(null, "BCST " + username + " joined the server");
+
+        for (ClientHandler client : Main.getClientHandlers()) {
+            if (client.getUsername().equals(username)) {
+                Main.sendMessage(socket, "The username " + username + " is already taken, please try a new name");
+                username = message.replace("HELO ", "");
+            }
+
+        }
+
+        this.username = username;
+
         pingSender();
         inactiveTimer();
+
         while (running) {
             try {
-                String message = Main.readMessage(socket,this);
-                if (message != null) {
+                String msg = Main.readMessage(socket, this);
+                if (msg != null) {
                     inactiveTimer();
-                    if (!message.equals("PONG ")) {
-                        Main.broadcastMessage(this, message);
+                    if (!msg.equals("PONG ")) {
+                        Main.broadcastMessage(this, msg);
                     }
                 }
             } catch (Exception e) {
@@ -54,7 +86,7 @@ public class ClientHandler extends Thread {
     private void inactiveTimer() {
         try {
             timer.cancel();
-        } catch (NullPointerException npe){
+        } catch (NullPointerException npe) {
             System.out.println("No pingpong timer found for " + username + ", creating one...");
         }
         timer = new Timer();
@@ -89,7 +121,7 @@ public class ClientHandler extends Thread {
         this.username = username;
     }
 
-    private void disconnect(){
+    private void disconnect() {
         running = false;
         Main.kickClient(this);
     }
