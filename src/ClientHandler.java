@@ -24,7 +24,6 @@ public class ClientHandler extends Thread {
             try {
                 String message = Main.readMessage(socket,this);
                 if (message != null) {
-                    System.out.println("Resetting the timer");
                     inactiveTimer();
                     if (!message.equals("PONG ")) {
                         Main.broadcastMessage(this, message);
@@ -56,13 +55,13 @@ public class ClientHandler extends Thread {
         try {
             timer.cancel();
         } catch (NullPointerException npe){
-            System.out.println("No timer found, creating one...");
+            System.out.println("No pingpong timer found for " + username + ", creating one...");
         }
         timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                System.out.println("Close this maddafakka");
+                System.out.println("Closed the connection of " + username + " because he was idle.");
                 timer.cancel();
                 disconnect();
             }

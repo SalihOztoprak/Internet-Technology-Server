@@ -12,7 +12,7 @@ public class MD5 {
             MessageDigest md = MessageDigest.getInstance("MD5");
             return md.digest(input.getBytes());
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            System.out.println("User logged out without entering his name");
         }
         return null;
     }

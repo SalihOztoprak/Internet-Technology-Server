@@ -23,6 +23,8 @@ public class Commands {
             case "/quit":
                 Main.broadcastMessage(null, "BCST " + handler.getUsername() + " left the server");
                 break;
+            case "/file":
+                Main.sendMessage(handler.getSocket(),"ERR Cannot send the file");
             case "/group":
                 if (command.length > 2) {
                     switch (command[2]) {
